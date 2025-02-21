@@ -1,60 +1,48 @@
 #include <iostream>
-#include <future>
 #include <vector>
 #include <functional>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 
-// Функция для генерации вектора случайных чисел
-void gen_vector(int sz, function<void(vector<int>)> callback) {
-    vector<int> vec;
+// Функция для генерации массива случайных чисел
+void generateRandomArray(int size, function<void(vector<int>)> callback) {
+    vector<int> arr;
     srand(time(0));
-    for (int i = 0; i < sz; i++) {
-        vec.push_back(rand() % 100);
+    for (int i = 0; i < size; i++) {
+        arr.push_back(rand() % 100); 
     }
-    callback(vec);
+    callback(arr); 
 }
 
-// Функция для вычисления суммы элементов вектора
-void summa(const vector<int>& vec, function<void(int)> callback) {
-    int sm = 0;
-    for (auto i : vec) {
-        sm += i;
+// Функция для обработки массива с использованием callback-функции
+void processArray(const vector<int>& arr, function<int(int)> processor, function<void(vector<int>)> callback) {
+    vector<int> processedArr;
+    for (int num : arr) {
+        processedArr.push_back(processor(num)); 
     }
-    callback(sm);
-}
-
-// Функция для вычисления произведения элементов вектора
-void proizved(const vector<int>& vec, function<void(int)> callback) {
-    int pr = 1;
-    for (auto i : vec) {
-        pr *= i;
-    }
-    callback(pr);
+    callback(processedArr); 
 }
 
 int main() {
-    auto task1 = async(launch::async, [](function<void(vector<int>)> callback) {
-        gen_vector(10, callback);
-    },
-    [](vector<int> vec) {
-        cout << "Сгенерированный вектор: ";
-        for (int num : vec) {
+    int size = 10;
+
+    generateRandomArray(size, [&](vector<int> originalArray) {
+        cout << "Исходный массив: ";
+        for (int num : originalArray) {
             cout << num << " ";
         }
         cout << endl;
 
-        auto task2 = async(launch::async, [vec](function<void(int)> callback) {
-            summa(vec, callback);
+        processArray(originalArray, [](int num) -> int {
+            return num * 2; 
         },
-        [](int sm) {
-            cout << "Сумма элементов: " << sm << endl;
-        });
-
-        auto task3 = async(launch::async, [vec](function<void(int)> callback) {
-            proizved(vec, callback);
-        },
-        [](int pr) {
-            cout << "Произведение элементов: " << pr << endl;
+        [&](vector<int> processedArray) {
+            cout << "Обработанный массив: ";
+            for (int num : processedArray) {
+                cout << num << " ";
+            }
+            cout << endl;
         });
     });
 
